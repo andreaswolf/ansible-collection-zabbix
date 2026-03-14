@@ -1,0 +1,11 @@
+# Services and daemons: Manage their state, configure, or create them.
+
+---
+
+- name: "Service | Default | Ensure zabbix-server service state"
+  ansible.builtin.service:
+    name: "{{ __server_zabbix_service_name }}"
+    state: "{{ 'started' if server_zabbix_service_state in ['enabled', 'running'] else 'stopped' if server_zabbix_service_state == 'disabled' }}"
+    enabled: "{{ true if server_zabbix_service_state == 'enabled' else false if server_zabbix_service_state in ['disabled', 'running'] }}"
+  when:
+    - server_zabbix_service_state != 'unmanaged'

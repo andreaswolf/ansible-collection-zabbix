@@ -1,0 +1,86 @@
+# Main entry point for the role.
+
+---
+
+- name: "Main | Include role initialization tasks"
+  ansible.builtin.include_tasks:
+    file: "{{ role_path }}/tasks/init.yml"
+    apply:
+      tags:
+        - "always"
+        - "server_zabbix_always"
+  tags:
+    - "always"
+    - "server_zabbix_always"
+
+
+- name: "Main | Include setup tasks (install): best platform matches (if any), then default"
+  ansible.builtin.include_tasks:
+    file: "{{ __server_zabbix_task_file }}"
+    apply:
+      tags:
+        - "server_zabbix_setup"
+  vars:
+    __server_zabbix_task_file: "{{ role_path }}/tasks/setup/install/{{ __server_zabbix_loop_item }}"
+  when:
+    - server_zabbix_state == 'present'
+    - __server_zabbix_task_file is file
+  loop: "{{ __server_zabbix_platform_filenames_most_specific_first + ['default.yml'] }}"
+  loop_control:
+    loop_var: "__server_zabbix_loop_item"
+  tags:
+    - "server_zabbix_setup"
+
+
+- name: "Main | Include configuration tasks: best platform matches (if any), then default"
+  ansible.builtin.include_tasks:
+    file: "{{ __server_zabbix_task_file }}"
+    apply:
+      tags:
+        - "server_zabbix_config"
+  vars:
+    __server_zabbix_task_file: "{{ role_path }}/tasks/config/{{ __server_zabbix_loop_item }}"
+  when:
+    - server_zabbix_state == 'present'
+    - __server_zabbix_task_file is file
+  loop: "{{ __server_zabbix_platform_filenames_most_specific_first + ['default.yml'] }}"
+  loop_control:
+    loop_var: "__server_zabbix_loop_item"
+  tags:
+    - "server_zabbix_config"
+
+
+- name: "Main | Include service or daemon management tasks: best platform matches (if any), then default"
+  ansible.builtin.include_tasks:
+    file: "{{ __server_zabbix_task_file }}"
+    apply:
+      tags:
+        - "server_zabbix_service"
+  vars:
+    __server_zabbix_task_file: "{{ role_path }}/tasks/service/{{ __server_zabbix_loop_item }}"
+  when:
+    - server_zabbix_state == 'present'
+    - __server_zabbix_task_file is file
+  loop: "{{ __server_zabbix_platform_filenames_most_specific_first + ['default.yml'] }}"
+  loop_control:
+    loop_var: "__server_zabbix_loop_item"
+  tags:
+    - "server_zabbix_service"
+
+
+- name: "Main | Include setup tasks (uninstall): best platform matches (if any), then default"
+  ansible.builtin.include_tasks:
+    file: "{{ __server_zabbix_task_file }}"
+    apply:
+      tags:
+        - "server_zabbix_setup"
+  vars:
+    __server_zabbix_task_file: "{{ role_path }}/tasks/setup/uninstall/{{ __server_zabbix_loop_item }}"
+  when:
+    - server_zabbix_state == 'absent'
+    - __server_zabbix_task_file is file
+  loop: "{{ __server_zabbix_platform_filenames_most_specific_first + ['default.yml'] }}"
+  loop_control:
+    loop_var: "__server_zabbix_loop_item"
+  tags:
+    - "server_zabbix_setup"
