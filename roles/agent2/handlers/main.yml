@@ -1,0 +1,8 @@
+# Handlers: Tasks that are triggered and run only when notified.
+
+---
+
+- name: "restart_agent2_zabbix"
+  ansible.builtin.service:
+    name: "{{ __agent2_zabbix_service_name }}"
+    state: "restarted"

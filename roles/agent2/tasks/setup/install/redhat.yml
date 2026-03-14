@@ -1,0 +1,19 @@
+# Setup: Install | RedHat family — add Zabbix YUM repository and GPG key.
+
+---
+
+- name: "Setup | Install | RedHat | Import Zabbix GPG key"
+  ansible.builtin.rpm_key:
+    key: "https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-B5333005"
+    state: "present"
+
+
+- name: "Setup | Install | RedHat | Add Zabbix YUM repository"
+  ansible.builtin.yum_repository:
+    name: "zabbix"
+    description: "Zabbix Official Repository"
+    baseurl: "https://repo.zabbix.com/zabbix/{{ agent2_zabbix_version }}/rhel/{{ ansible_facts['distribution_major_version'] }}/$basearch/"
+    gpgcheck: true
+    gpgkey: "https://repo.zabbix.com/RPM-GPG-KEY-ZABBIX-B5333005"
+    enabled: true
+    state: "present"

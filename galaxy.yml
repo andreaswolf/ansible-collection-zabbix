@@ -14,7 +14,7 @@ authors:
   - "Andreas Wolf <dev@a-w.io>"
 
 readme: "README.md"
-description: "Manage Zabbix monitoring server."
+description: "Manage Zabbix monitoring."
 repository: "https://github.com/andreaswolf/ansible-collection-zabbix/"
 #documentation: "http://docs.example.com"
 #issues: "https://github.com/andreaswolf/ansible-collection-zabbix/issues/" # Use only if the issue tracker is separate from the repository.

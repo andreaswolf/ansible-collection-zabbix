@@ -1,0 +1,54 @@
+# Role argument validation.
+#
+# See defaults/main.yml for details on each variable. For more information on
+# the argument_specs.yml format, refer to the official Ansible documentation:
+# https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html#role-argument-validation
+
+---
+
+argument_specs:
+
+  # a9f.zabbix/roles/agent2/tasks/main.yml entry point
+  main:
+    short_description: "Main entry point for the a9f.zabbix.agent2 role"
+    options:
+
+      agent2_zabbix_state:
+        type: "str"
+        required: true
+        choices:
+          - "present"
+          - "absent"
+
+      agent2_zabbix_autoupgrade:
+        type: "bool"
+        required: true
+
+      agent2_zabbix_service_state:
+        type: "str"
+        required: true
+        choices:
+          - "enabled"
+          - "disabled"
+          - "running"
+          - "unmanaged"
+
+      agent2_zabbix_version:
+        type: "str"
+        required: true
+
+      agent2_zabbix_server:
+        type: "str"
+        required: true
+
+      agent2_zabbix_server_active:
+        type: "str"
+        required: true
+
+      agent2_zabbix_hostname:
+        type: "str"
+        required: true
+
+      agent2_zabbix_listen_port:
+        type: "int"
+        required: true

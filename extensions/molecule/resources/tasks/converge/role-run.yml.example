@@ -1,6 +1,0 @@
-
-- name: "Molecule | Converge | Include the a9f.zabbix.run role"
-  ansible.builtin.include_role:
-    name: "a9f.zabbix.run"
-  vars:
-    run_zabbix_state: "present"

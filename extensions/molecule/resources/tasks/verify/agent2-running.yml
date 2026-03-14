@@ -1,0 +1,21 @@
+- name: "Molecule | Verify | Gather zabbix-agent2 service facts"
+  ansible.builtin.service_facts:
+
+
+- name: "Molecule | Verify | Assert zabbix-agent2 service is running and enabled"
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.services['zabbix-agent2.service'] is defined
+      - ansible_facts.services['zabbix-agent2.service']['state'] == 'running'
+      - ansible_facts.services['zabbix-agent2.service']['status'] == 'enabled'
+    fail_msg: "zabbix-agent2 service is not running or not enabled"
+    success_msg: "zabbix-agent2 service is running and enabled"
+
+
+- name: "Molecule | Verify | Assert zabbix-agent2 is listening on port 10050"
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: 10050
+    timeout: 10
+    state: "started"
+    msg: "zabbix-agent2 is not listening on port 10050"

@@ -15,9 +15,9 @@ This repository contains the `a9f.zabbix` Ansible Collection.
 
 ## Included content<a id="content"></a>
 
-### Role: `a9f.zabbix.run`
+### Role: `a9f.zabbix.agent2`
 
-See the [role's `README.md`](./roles/run/README.md) for more information and usage examples.
+See the [role's `README.md`](./roles/agent2/README.md) for more information and usage examples.
 
 
 

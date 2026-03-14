@@ -1,0 +1,8 @@
+# Setup: Uninstall | RedHat family — remove Zabbix YUM repository.
+
+---
+
+- name: "Setup | Uninstall | RedHat | Remove Zabbix YUM repository"
+  ansible.builtin.yum_repository:
+    name: "zabbix"
+    state: "absent"

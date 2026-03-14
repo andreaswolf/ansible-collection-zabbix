@@ -1,0 +1,41 @@
+# Setup: Install | Debian/Ubuntu — add Zabbix APT repository and GPG key.
+
+---
+
+- name: "Setup | Install | Debian | Ensure /etc/apt/keyrings/ directory exists"
+  ansible.builtin.file:
+    path: "/etc/apt/keyrings"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+
+- name: "Setup | Install | Debian | Download Zabbix GPG key"
+  ansible.builtin.get_url:
+    url: "https://repo.zabbix.com/zabbix-official-repo.key"
+    dest: "/etc/apt/keyrings/zabbix.asc"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+
+- name: "Setup | Install | Debian | Add Zabbix APT repository"
+  ansible.builtin.copy:
+    dest: "/etc/apt/sources.list.d/zabbix.sources"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://repo.zabbix.com/zabbix/{{ agent2_zabbix_version }}/stable/{{ ansible_facts['distribution'] | lower }}
+      Suites: {{ ansible_facts['distribution_release'] }}
+      Components: main
+      Signed-By: /etc/apt/keyrings/zabbix.asc
+  register: __agent2_zabbix_apt_repo
+
+
+- name: "Setup | Install | Debian | Update apt cache if repository changed"
+  ansible.builtin.apt:
+    update_cache: true
+  when: __agent2_zabbix_apt_repo is changed

@@ -1,0 +1,12 @@
+# Configuration: Manage settings, like adapting or creating config files.
+
+---
+
+- name: "Config | Default | Deploy zabbix_agent2.conf"
+  ansible.builtin.template:
+    src: "zabbix_agent2.conf.j2"
+    dest: "{{ __agent2_zabbix_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: "restart_agent2_zabbix"

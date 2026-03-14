@@ -1,0 +1,6 @@
+- name: "Molecule | Converge | Include the a9f.zabbix.agent2 role"
+  ansible.builtin.include_role:
+    name: "a9f.zabbix.agent2"
+  vars:
+    agent2_zabbix_state: "present"
+    agent2_zabbix_server: "127.0.0.1"

@@ -1,0 +1,11 @@
+# Services and daemons: Manage their state, configure, or create them.
+
+---
+
+- name: "Service | Default | Ensure zabbix-agent2 service state"
+  ansible.builtin.service:
+    name: "{{ __agent2_zabbix_service_name }}"
+    state: "{{ 'started' if agent2_zabbix_service_state in ['enabled', 'running'] else 'stopped' if agent2_zabbix_service_state == 'disabled' }}"
+    enabled: "{{ true if agent2_zabbix_service_state == 'enabled' else false if agent2_zabbix_service_state in ['disabled', 'running'] }}"
+  when:
+    - agent2_zabbix_service_state != 'unmanaged'

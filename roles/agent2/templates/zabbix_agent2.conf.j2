@@ -1,0 +1,13 @@
+PidFile=/run/zabbix/zabbix_agent2.pid
+LogFile=/var/log/zabbix/zabbix_agent2.log
+LogFileSize=0
+Server={{ agent2_zabbix_server }}
+ServerActive={{ agent2_zabbix_server_active if agent2_zabbix_server_active else agent2_zabbix_server }}
+{% if agent2_zabbix_hostname %}
+Hostname={{ agent2_zabbix_hostname }}
+{% else %}
+HostnameItem=system.hostname
+{% endif %}
+ListenPort={{ agent2_zabbix_listen_port }}
+Include=/etc/zabbix/zabbix_agent2.d/*.conf
+PluginSocket=/run/zabbix/agent.plugin.sock
