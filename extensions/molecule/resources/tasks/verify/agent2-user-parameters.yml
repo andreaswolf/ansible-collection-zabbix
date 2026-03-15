@@ -1,0 +1,17 @@
+- name: "Molecule | Verify | Read zabbix_agent2.conf"
+  ansible.builtin.slurp:
+    src: "/etc/zabbix/zabbix_agent2.conf"
+  register: "__agent2_zabbix_config_content"
+
+
+- name: "Molecule | Verify | Assert UserParameter entries are present in config"
+  ansible.builtin.assert:
+    that:
+      - >-
+        'UserParameter=custom.uptime,cat /proc/uptime'
+        in (__agent2_zabbix_config_content.content | b64decode)
+      - >-
+        'UserParameter=custom.hostname,hostname -f'
+        in (__agent2_zabbix_config_content.content | b64decode)
+    fail_msg: "Expected UserParameter entries are missing from zabbix_agent2.conf"
+    success_msg: "UserParameter entries are present in zabbix_agent2.conf"

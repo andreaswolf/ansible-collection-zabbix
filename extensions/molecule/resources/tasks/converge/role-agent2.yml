@@ -4,3 +4,6 @@
   vars:
     agent2_zabbix_state: "present"
     agent2_zabbix_server: "127.0.0.1"
+    agent2_zabbix_user_parameters:
+      - "custom.uptime,cat /proc/uptime"
+      - "custom.hostname,hostname -f"

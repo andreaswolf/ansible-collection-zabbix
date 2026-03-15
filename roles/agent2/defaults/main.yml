@@ -62,3 +62,13 @@ agent2_zabbix_hostname: ""
 
 # Integer. Port the agent listens on for passive checks. Defaults to 10050.
 agent2_zabbix_listen_port: 10050
+
+
+# List of strings. Custom metrics defined via Zabbix UserParameter directives.
+# Each entry is a string of the form "<key>,<command>", which gets written to
+# the agent configuration as "UserParameter=<key>,<command>". Defaults to [].
+# Example:
+#   agent2_zabbix_user_parameters:
+#     - "custom.uptime,cat /proc/uptime"
+#     - "custom.hostname,hostname -f"
+agent2_zabbix_user_parameters: []

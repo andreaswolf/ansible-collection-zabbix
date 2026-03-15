@@ -11,3 +11,6 @@ HostnameItem=system.hostname
 ListenPort={{ agent2_zabbix_listen_port }}
 Include=/etc/zabbix/zabbix_agent2.d/*.conf
 PluginSocket=/run/zabbix/agent.plugin.sock
+{% for param in agent2_zabbix_user_parameters %}
+UserParameter={{ param }}
+{% endfor %}
