@@ -1,0 +1,20 @@
+# Verify tasks for a9f.zabbix.template module validation-failure tests.
+#
+# The converge tasks (role-template.yml) use ignore_errors + assert to verify
+# that the module fails as expected for invalid inputs. Those converge
+# assertions serve as the primary verification for the validation branches.
+#
+# Happy-path API integration tests (successful import, idempotent absent, etc.)
+# require a live Zabbix server and are not covered in this scenario. To run
+# full integration tests, either:
+#   - Add a Zabbix server container to a dedicated Molecule scenario, or
+#   - Point the module at a reachable Zabbix instance and extend this file with
+#     assert tasks that verify the expected API outcomes.
+
+- name: "Molecule | Verify | template: document that API integration tests require a live Zabbix server"
+  ansible.builtin.debug:
+    msg: >
+      Full API integration tests for a9f.zabbix.template (happy path: import,
+      idempotent absent, etc.) are not covered in this scenario because they
+      require a live Zabbix server. The validation-failure branches are tested
+      in the converge phase via ignore_errors + assert.

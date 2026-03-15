@@ -1,0 +1,10 @@
+---
+
+minor_changes:
+  - Add new ``a9f.zabbix.template`` module for managing Zabbix template
+    objects via the Zabbix HTTP JSON-RPC API. Supports ``state=present``
+    (import via ``configuration.import``) and ``state=absent`` (remove via
+    ``template.get`` + ``template.delete``). Template content can be supplied
+    as an inline dict (``template`` parameter) or as a path to a YAML file
+    (``src`` parameter). Authentication supports bearer tokens (Zabbix >= 6.4
+    API tokens) and user/password session login as a fallback.

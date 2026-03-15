@@ -1,0 +1,89 @@
+# Validation-failure tests for the a9f.zabbix.template module.
+#
+# Each block exercises one input-validation branch. The module is expected to
+# fail in all cases; the assert immediately after each task confirms it.
+#
+# Full happy-path API tests require a live Zabbix server and are not covered
+# in this scenario. See extensions/molecule/resources/tasks/verify/template-validation.yml.
+
+- name: "Molecule | Converge | template: missing api_url must cause failure"
+  a9f.zabbix.template:
+    api_url: ""
+    api_token: "sometoken"
+    state: present
+    template:
+      zabbix_export:
+        version: "7.4"
+        templates: []
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_template_missing_url_result"
+
+
+- name: "Molecule | Converge | template: assert that missing api_url caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_template_missing_url_result is failed
+    fail_msg: "Module did not fail when api_url was empty"
+    success_msg: "Module correctly failed when api_url was empty"
+
+
+- name: "Molecule | Converge | template: both src and template set must cause failure"
+  a9f.zabbix.template:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    state: present
+    src: "/some/path/template.yml"
+    template:
+      zabbix_export:
+        version: "7.4"
+        templates: []
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_template_both_sources_result"
+
+
+- name: "Molecule | Converge | template: assert that both src and template set caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_template_both_sources_result is failed
+    fail_msg: "Module did not fail when both src and template were set"
+    success_msg: "Module correctly failed when both src and template were set"
+
+
+- name: "Molecule | Converge | template: no auth method configured must cause failure"
+  a9f.zabbix.template:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: ""
+    api_user: ""
+    api_password: ""
+    state: present
+    template:
+      zabbix_export:
+        version: "7.4"
+        templates: []
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_template_no_auth_result"
+
+
+- name: "Molecule | Converge | template: assert that missing auth caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_template_no_auth_result is failed
+    fail_msg: "Module did not fail when no authentication method was configured"
+    success_msg: "Module correctly failed when no authentication method was configured"
+
+
+- name: "Molecule | Converge | template: state=absent without name must cause failure"
+  a9f.zabbix.template:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    state: absent
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_template_absent_no_name_result"
+
+
+- name: "Molecule | Converge | template: assert that absent without name caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_template_absent_no_name_result is failed
+    fail_msg: "Module did not fail when state=absent without name"
+    success_msg: "Module correctly failed when state=absent without name"
