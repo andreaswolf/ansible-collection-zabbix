@@ -1,0 +1,39 @@
+- name: "Molecule | Verify | Read zabbix_agent2.conf (encryption check)"
+  ansible.builtin.slurp:
+    src: "/etc/zabbix/zabbix_agent2.conf"
+  register: "__agent2_zabbix_config_content_enc"
+
+
+- name: "Molecule | Verify | Assert TLS PSK directives are present in config"
+  ansible.builtin.assert:
+    that:
+      - >-
+        'TLSConnect=psk'
+        in (__agent2_zabbix_config_content_enc.content | b64decode)
+      - >-
+        'TLSAccept=psk'
+        in (__agent2_zabbix_config_content_enc.content | b64decode)
+      - >-
+        'TLSPSKIdentity=molecule-test-psk'
+        in (__agent2_zabbix_config_content_enc.content | b64decode)
+      - >-
+        'TLSPSKFile=/etc/zabbix/zabbix_agent2.psk'
+        in (__agent2_zabbix_config_content_enc.content | b64decode)
+    fail_msg: "Expected TLS PSK directives are missing from zabbix_agent2.conf"
+    success_msg: "TLS PSK directives are present in zabbix_agent2.conf"
+
+
+- name: "Molecule | Verify | Stat PSK file"
+  ansible.builtin.stat:
+    path: "/etc/zabbix/zabbix_agent2.psk"
+  register: "__agent2_zabbix_psk_file_stat"
+
+
+- name: "Molecule | Verify | Assert PSK file exists with correct permissions"
+  ansible.builtin.assert:
+    that:
+      - __agent2_zabbix_psk_file_stat.stat.exists
+      - __agent2_zabbix_psk_file_stat.stat.mode == '0400'
+      - __agent2_zabbix_psk_file_stat.stat.pw_name == 'zabbix'
+    fail_msg: "PSK file /etc/zabbix/zabbix_agent2.psk is missing or has wrong permissions/owner"
+    success_msg: "PSK file exists with correct permissions and owner"

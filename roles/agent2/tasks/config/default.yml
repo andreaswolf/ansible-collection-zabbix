@@ -10,3 +10,15 @@
     group: "root"
     mode: "0644"
   notify: "restart_agent2_zabbix"
+
+
+- name: "Config | Default | Deploy PSK file"
+  ansible.builtin.copy:
+    content: "{{ agent2_zabbix_tls_psk_secret }}\n"
+    dest: "{{ agent2_zabbix_tls_psk_file }}"
+    owner: "zabbix"
+    group: "zabbix"
+    mode: "0400"
+  when: agent2_zabbix_tls_psk_secret | length > 0
+  no_log: true
+  notify: "restart_agent2_zabbix"

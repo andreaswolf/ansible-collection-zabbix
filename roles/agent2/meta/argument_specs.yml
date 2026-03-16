@@ -57,3 +57,28 @@ argument_specs:
         type: "list"
         elements: "str"
         required: true
+
+      agent2_zabbix_tls_connect:
+        type: "str"
+        required: true
+        choices:
+          - "unencrypted"
+          - "psk"
+          - "cert"
+
+      agent2_zabbix_tls_accept:
+        type: "list"
+        elements: "str"
+        required: true
+
+      agent2_zabbix_tls_psk_identity:
+        type: "str"
+        required: true
+
+      agent2_zabbix_tls_psk_secret:
+        type: "str"
+        required: true
+
+      agent2_zabbix_tls_psk_file:
+        type: "str"
+        required: true

@@ -14,3 +14,15 @@ PluginSocket=/run/zabbix/agent.plugin.sock
 {% for param in agent2_zabbix_user_parameters %}
 UserParameter={{ param }}
 {% endfor %}
+{% if agent2_zabbix_tls_connect != 'unencrypted' %}
+TLSConnect={{ agent2_zabbix_tls_connect }}
+{% endif %}
+{% if agent2_zabbix_tls_accept != ['unencrypted'] %}
+TLSAccept={{ agent2_zabbix_tls_accept | join(',') }}
+{% endif %}
+{% if agent2_zabbix_tls_psk_identity %}
+TLSPSKIdentity={{ agent2_zabbix_tls_psk_identity }}
+{% endif %}
+{% if agent2_zabbix_tls_connect == 'psk' or 'psk' in agent2_zabbix_tls_accept %}
+TLSPSKFile={{ agent2_zabbix_tls_psk_file }}
+{% endif %}

@@ -72,3 +72,49 @@ agent2_zabbix_listen_port: 10050
 #     - "custom.uptime,cat /proc/uptime"
 #     - "custom.hostname,hostname -f"
 agent2_zabbix_user_parameters: []
+
+
+# String. How the agent connects to the Zabbix server or proxy for active
+# checks. Defaults to "unencrypted". Possible values:
+#
+# - "unencrypted": Plain-text connection (no encryption).
+# - "psk": Connection encrypted using a pre-shared key.
+# - "cert": Connection encrypted using a TLS certificate.
+agent2_zabbix_tls_connect: "unencrypted"
+
+
+# List of strings. What incoming connection types the agent accepts for passive
+# checks. Defaults to ["unencrypted"]. Each item must be one of:
+#
+# - "unencrypted": Accept plain-text connections.
+# - "psk": Accept connections encrypted with a pre-shared key.
+# - "cert": Accept connections encrypted with a TLS certificate.
+#
+# Multiple values are allowed, e.g. ["unencrypted", "psk"].
+agent2_zabbix_tls_accept:
+  - "unencrypted"
+
+
+# String. PSK identity string sent to the Zabbix server to identify which
+# pre-shared key to use. Maximum 128 UTF-8 characters. The identity is
+# transmitted in plain text, so avoid using sensitive information here.
+# Required when agent2_zabbix_tls_connect or agent2_zabbix_tls_accept
+# includes "psk". Defaults to "".
+agent2_zabbix_tls_psk_identity: ""
+
+
+# String. Pre-shared key value as a hex-encoded string. Minimum 32 hex
+# characters (128 bits), maximum 512 hex characters (2048 bits). When
+# non-empty, the role writes this value to agent2_zabbix_tls_psk_file on the
+# managed host. Leave empty if the PSK file is managed externally. Defaults
+# to "".
+agent2_zabbix_tls_psk_secret: ""
+
+
+# String. Absolute path to the PSK file on the managed host. When
+# agent2_zabbix_tls_psk_secret is non-empty, this file is created and managed
+# by the role (owned by the zabbix user, mode 0400). When
+# agent2_zabbix_tls_psk_secret is empty, the path is only referenced in the
+# agent configuration and the file must be provisioned externally.
+# Defaults to "/etc/zabbix/zabbix_agent2.psk".
+agent2_zabbix_tls_psk_file: "/etc/zabbix/zabbix_agent2.psk"
