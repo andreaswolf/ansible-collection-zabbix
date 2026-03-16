@@ -1,0 +1,130 @@
+# Validation-failure tests for the a9f.zabbix.host module.
+#
+# Each block exercises one input-validation branch. The module is expected to
+# fail in all cases; the assert immediately after each task confirms it.
+#
+# Full happy-path API tests require a live Zabbix server and are not covered
+# in this scenario. See extensions/molecule/resources/tasks/verify/host-validation.yml.
+
+- name: "Molecule | Converge | host: missing api_url must cause failure"
+  a9f.zabbix.host:
+    api_url: ""
+    api_token: "sometoken"
+    name: "test-host"
+    host_groups:
+      - "Linux servers"
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_missing_url_result"
+
+
+- name: "Molecule | Converge | host: assert that missing api_url caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_missing_url_result is failed
+    fail_msg: "Module did not fail when api_url was empty"
+    success_msg: "Module correctly failed when api_url was empty"
+
+
+- name: "Molecule | Converge | host: no auth method configured must cause failure"
+  a9f.zabbix.host:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: ""
+    api_user: ""
+    api_password: ""
+    name: "test-host"
+    host_groups:
+      - "Linux servers"
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_no_auth_result"
+
+
+- name: "Molecule | Converge | host: assert that missing auth caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_no_auth_result is failed
+    fail_msg: "Module did not fail when no authentication method was configured"
+    success_msg: "Module correctly failed when no authentication method was configured"
+
+
+- name: "Molecule | Converge | host: empty name must cause failure"
+  a9f.zabbix.host:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    name: ""
+    host_groups:
+      - "Linux servers"
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_empty_name_result"
+
+
+- name: "Molecule | Converge | host: assert that empty name caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_empty_name_result is failed
+    fail_msg: "Module did not fail when name was empty"
+    success_msg: "Module correctly failed when name was empty"
+
+
+- name: "Molecule | Converge | host: state=present without host_groups must cause failure"
+  a9f.zabbix.host:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    name: "test-host"
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_no_groups_result"
+
+
+- name: "Molecule | Converge | host: assert that missing host_groups caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_no_groups_result is failed
+    fail_msg: "Module did not fail when state=present without host_groups"
+    success_msg: "Module correctly failed when state=present without host_groups"
+
+
+- name: "Molecule | Converge | host: state=present with empty host_groups list must cause failure"
+  a9f.zabbix.host:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    name: "test-host"
+    host_groups: []
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_empty_groups_result"
+
+
+- name: "Molecule | Converge | host: assert that empty host_groups list caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_empty_groups_result is failed
+    fail_msg: "Module did not fail when host_groups was an empty list"
+    success_msg: "Module correctly failed when host_groups was an empty list"
+
+
+- name: "Molecule | Converge | host: interface with invalid type must cause failure"
+  a9f.zabbix.host:
+    api_url: "https://zabbix.example.com/api_jsonrpc.php"
+    api_token: "sometoken"
+    name: "test-host"
+    host_groups:
+      - "Linux servers"
+    interfaces:
+      - type: "invalid_type"
+        useip: true
+        ip: "192.0.2.1"
+        port: "10050"
+    state: present
+  ignore_errors: true # noqa: ignore-errors
+  register: "__molecule_host_invalid_iface_type_result"
+
+
+- name: "Molecule | Converge | host: assert that invalid interface type caused failure"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_invalid_iface_type_result is failed
+    fail_msg: "Module did not fail when an interface had an invalid type"
+    success_msg: "Module correctly failed when an interface had an invalid type"

@@ -1,0 +1,9 @@
+---
+
+minor_changes:
+  - Add new ``a9f.zabbix.host`` module for managing Zabbix host objects via
+    the Zabbix HTTP JSON-RPC API. Supports ``state=present`` (idempotent
+    create/update) and ``state=absent`` (remove). Manages host groups,
+    directly-linked templates, interfaces (agent, SNMP, IPMI, JMX), tags, and
+    macros. Authentication supports bearer tokens (Zabbix >= 6.4 API tokens)
+    and user/password session login as a fallback.
