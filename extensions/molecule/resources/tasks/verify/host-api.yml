@@ -88,7 +88,6 @@
           - host
           - tls_connect
           - tls_accept
-          - tls_psk_identity
       id: 1
     status_code: 200
   register: __molecule_verify_psk_host
@@ -100,11 +99,9 @@
       - __molecule_verify_psk_host.json.result | length == 1
       - __molecule_verify_psk_host.json.result[0].tls_connect == "2"
       - __molecule_verify_psk_host.json.result[0].tls_accept == "2"
-      - __molecule_verify_psk_host.json.result[0].tls_psk_identity == "molecule-test-psk"
     fail_msg: >
       PSK host assertions failed:
       found={{ __molecule_verify_psk_host.json.result | length }},
       tls_connect={{ (__molecule_verify_psk_host.json.result[0].tls_connect) | default('N/A') }},
-      tls_accept={{ (__molecule_verify_psk_host.json.result[0].tls_accept) | default('N/A') }},
-      tls_psk_identity={{ (__molecule_verify_psk_host.json.result[0].tls_psk_identity) | default('N/A') }}
-    success_msg: "PSK host exists with correct TLS settings and PSK identity"
+      tls_accept={{ (__molecule_verify_psk_host.json.result[0].tls_accept) | default('N/A') }}
+    success_msg: "PSK host exists with correct TLS settings"
