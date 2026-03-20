@@ -1,0 +1,36 @@
+- name: "Molecule | Converge | Include the a9f.zabbix.server role (install + config, service disabled)"
+  ansible.builtin.include_role:
+    name: "a9f.zabbix.server"
+  vars:
+    server_zabbix_state: "present"
+    server_zabbix_service_state: "unmanaged"
+
+
+- name: "Molecule | Converge | Install zabbix-sql-scripts (not a dependency of zabbix-server-mysql)"
+  ansible.builtin.package:
+    name: "zabbix-sql-scripts"
+    state: "present"
+
+
+- name: "Molecule | Converge | Check if Zabbix DB schema is already imported"
+  ansible.builtin.command:
+    cmd: "mysql --user=zabbix zabbix --execute='SELECT 1 FROM users LIMIT 1'"
+  register: __molecule_server_schema_check
+  failed_when: false
+  changed_when: false
+
+
+- name: "Molecule | Converge | Import Zabbix DB schema"
+  ansible.builtin.shell:
+    cmd: "set -o pipefail && zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --user=zabbix zabbix"
+    executable: "/bin/bash"
+  changed_when: true
+  when: __molecule_server_schema_check.rc != 0
+
+
+- name: "Molecule | Converge | Include the a9f.zabbix.server role (enable and start service)"
+  ansible.builtin.include_role:
+    name: "a9f.zabbix.server"
+  vars:
+    server_zabbix_state: "present"
+    server_zabbix_service_state: "enabled"

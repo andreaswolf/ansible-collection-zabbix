@@ -1,0 +1,14 @@
+# Setup: Uninstall | Debian/Ubuntu — remove Zabbix APT repository and GPG key.
+
+---
+
+- name: "Setup | Uninstall | Debian | Remove Zabbix APT repository file"
+  ansible.builtin.file:
+    path: "/etc/apt/sources.list.d/zabbix.sources"
+    state: "absent"
+
+
+- name: "Setup | Uninstall | Debian | Remove Zabbix GPG key"
+  ansible.builtin.file:
+    path: "/etc/apt/keyrings/zabbix.asc"
+    state: "absent"

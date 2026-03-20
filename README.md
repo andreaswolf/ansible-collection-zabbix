@@ -19,6 +19,10 @@ This repository contains the `a9f.zabbix` Ansible Collection.
 
 See the [role's `README.md`](./roles/agent2/README.md) for more information and usage examples.
 
+### Role: `a9f.zabbix.server`
+
+See the [role's `README.md`](./roles/server/README.md) for more information and usage examples.
+
 
 
 ## Dependencies<a id="dependencies"></a>
