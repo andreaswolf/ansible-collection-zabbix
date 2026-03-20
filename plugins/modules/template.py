@@ -18,8 +18,11 @@ description:
   - All HTTP requests are made from the host on which the task runs. For
     controller-side execution, use C(delegate_to: localhost) or run the task
     in a play that targets C(localhost).
-  - When O(state=present), the module always reports C(changed) because the
-    Zabbix C(configuration.import) API provides no delta information.
+  - When O(state=present), the module compares the input against the current
+    Zabbix state (via C(configuration.export)) and only imports when a
+    difference is detected. Volatile fields (C(uuid), C(date)) are excluded
+    from the comparison. If the template names cannot be determined from the
+    input, the import is always performed and C(changed) is always reported.
   - When O(state=absent), the module is idempotent; it is a no-op if the
     template does not exist.
 options:
@@ -268,6 +271,30 @@ def _build_auth_headers(module):
     }
 
 
+def _strip_volatile_keys(obj):
+    """Recursively remove Zabbix-managed keys that change on every export.
+
+    Strips 'uuid' (assigned by Zabbix on first import, absent from hand-written
+    templates) and 'date' (timestamp in the export header) so that two
+    semantically identical templates compare as equal.
+    """
+    if isinstance(obj, dict):
+        return {k: _strip_volatile_keys(v) for k, v in obj.items() if k not in ('uuid', 'date')}
+    if isinstance(obj, list):
+        return [_strip_volatile_keys(item) for item in obj]
+    return obj
+
+
+def _templates_match(input_yaml, exported_yaml):
+    """Return True when input and exported template YAML are semantically equal."""
+    try:
+        input_data = yaml.safe_load(input_yaml)
+        exported_data = yaml.safe_load(exported_yaml)
+    except yaml.YAMLError:
+        return False
+    return _strip_volatile_keys(input_data) == _strip_volatile_keys(exported_data)
+
+
 def main():
     module = AnsibleModule(
         argument_spec=dict(
@@ -328,13 +355,41 @@ def main():
                 allow_unicode=True,
             )
 
-        _api_request(module, url, 'configuration.import', {
-            'format': 'yaml',
-            'rules': _IMPORT_RULES,
-            'source': template_yaml,
-        })
+        # Attempt idempotency: compare input against current Zabbix state.
+        # Falls back to unconditional import when template names cannot be
+        # determined from the input (malformed YAML, unexpected structure).
+        needs_import = True
+        try:
+            input_data = yaml.safe_load(template_yaml)
+            template_names = [
+                t['template']
+                for t in input_data.get('zabbix_export', {}).get('templates', [])
+            ]
+        except (yaml.YAMLError, KeyError, TypeError):
+            template_names = []
 
-        module.exit_json(changed=True)
+        if template_names:
+            existing = _api_request(module, url, 'template.get', {
+                'filter': {'host': template_names},
+                'output': ['templateid'],
+            }).get('result', [])
+
+            if len(existing) == len(template_names):
+                templateids = [t['templateid'] for t in existing]
+                export_result = _api_request(module, url, 'configuration.export', {
+                    'format': 'yaml',
+                    'options': {'templates': templateids},
+                })
+                needs_import = not _templates_match(template_yaml, export_result.get('result', ''))
+
+        if needs_import:
+            _api_request(module, url, 'configuration.import', {
+                'format': 'yaml',
+                'rules': _IMPORT_RULES,
+                'source': template_yaml,
+            })
+
+        module.exit_json(changed=needs_import)
 
     else:  # state == 'absent'
         result = _api_request(module, url, 'template.get', {
