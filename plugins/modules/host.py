@@ -402,8 +402,7 @@ def _get_host(module, url, name):
     """Return the first host dict matching *name*, or None."""
     result = _api_request(module, url, 'host.get', {
         'filter': {'host': [name]},
-        'output': ['hostid', 'host', 'name', 'description', 'status',
-                   'tls_connect', 'tls_accept', 'tls_psk_identity'],
+        'output': 'extend',
         'selectHostGroups': ['groupid'],
         'selectParentTemplates': ['templateid', 'host'],
         'selectInterfaces': 'extend',
