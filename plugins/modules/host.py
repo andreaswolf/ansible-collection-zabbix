@@ -664,9 +664,15 @@ def _ensure_present(module, url):
     elif int(host.get('tls_accept', 1)) != desired_tls_accept:
         update_params.update(tls_payload)
         changed = True
-    elif host.get('tls_psk_identity', '') != p.get('tls_psk_identity', ''):
-        update_params.update(tls_payload)
-        changed = True
+    else:
+        # tls_psk_identity may not be returned by the Zabbix API (treated as
+        # sensitive in some versions, similar to tls_psk). Only compare when
+        # Zabbix returned a non-empty value; if it is absent we cannot detect
+        # a change to the identity alone.
+        current_psk_identity = host.get('tls_psk_identity') or ''
+        if current_psk_identity and current_psk_identity != p['tls_psk_identity']:
+            update_params.update(tls_payload)
+            changed = True
 
     if changed:
         _api_request(module, url, 'host.update', update_params)
