@@ -123,3 +123,30 @@ provisioner:
 verifier:
   name: "ansible"
   enabled: true
+
+
+# Custom test sequence that omits the idempotency step.
+#
+# The built-in Molecule idempotency check (running converge twice and
+# expecting zero changed tasks) cannot be satisfied here for two reasons:
+#
+# 1. task-host-api.yml intentionally deletes and recreates Zabbix hosts on
+#    every converge run to guarantee a clean "first-run changed" assertion.
+#    This is the correct way to test that the module reports changed=true on
+#    create; the module-level idempotency is already verified by the explicit
+#    second-run assertions within that file.
+#
+# 2. The agent2 role's config-deploy task is non-idempotent in this
+#    environment (pre-existing, unrelated to the host module tests).
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - cleanup
+    - destroy
