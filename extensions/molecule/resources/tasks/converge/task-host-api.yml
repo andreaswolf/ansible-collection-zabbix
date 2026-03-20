@@ -1,0 +1,142 @@
+# Integration tests for a9f.zabbix.host: create hosts via the live Zabbix API.
+# Requires a running Zabbix server + web frontend (role-server.yml + setup-zabbix-web.yml).
+
+- name: "Molecule | Converge | host-api: set shared variables"
+  ansible.builtin.set_fact:
+    __molecule_zabbix_api_url: "http://localhost/zabbix/api_jsonrpc.php"
+    __molecule_zabbix_api_user: "Admin"
+    __molecule_zabbix_api_password: "zabbix"
+    __molecule_psk_identity: "molecule-test-psk"
+    __molecule_psk_secret: "1f87b595725ac58dd977beef14b97461a7c1045b9a1c963065002c5473194952"
+
+
+# ---------------------------------------------------------------------------
+# Plain host (no encryption) — first run: expect changed
+# ---------------------------------------------------------------------------
+
+- name: "Molecule | Converge | host-api: create plain host (first run)"
+  a9f.zabbix.host:
+    name: molecule-host-plain
+    host_groups:
+      - Linux servers
+    interfaces:
+      - type: agent
+        useip: true
+        ip: "127.0.0.1"
+        dns: ""
+        port: "10050"
+    tls_connect: unencrypted
+    tls_accept:
+      - unencrypted
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+  register: __molecule_host_plain_create
+
+
+- name: "Molecule | Converge | host-api: assert plain host creation reported changed"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_plain_create is changed
+    fail_msg: "First run of plain host create did not report changed"
+    success_msg: "Plain host created successfully"
+
+
+# Plain host — second run: expect idempotent (not changed)
+
+- name: "Molecule | Converge | host-api: create plain host (idempotency run)"
+  a9f.zabbix.host:
+    name: molecule-host-plain
+    host_groups:
+      - Linux servers
+    interfaces:
+      - type: agent
+        useip: true
+        ip: "127.0.0.1"
+        dns: ""
+        port: "10050"
+    tls_connect: unencrypted
+    tls_accept:
+      - unencrypted
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+  register: __molecule_host_plain_idempotent
+
+
+- name: "Molecule | Converge | host-api: assert plain host idempotency (not changed)"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_plain_idempotent is not changed
+    fail_msg: "Second run of plain host create reported changed (not idempotent)"
+    success_msg: "Plain host is idempotent"
+
+
+# ---------------------------------------------------------------------------
+# PSK host — first run: expect changed
+# ---------------------------------------------------------------------------
+
+- name: "Molecule | Converge | host-api: create PSK host (first run)"
+  a9f.zabbix.host:
+    name: molecule-host-psk
+    host_groups:
+      - Linux servers
+    interfaces:
+      - type: agent
+        useip: true
+        ip: "127.0.0.1"
+        dns: ""
+        port: "10050"
+    tls_connect: psk
+    tls_accept:
+      - psk
+    tls_psk_identity: "{{ __molecule_psk_identity }}"
+    tls_psk_secret: "{{ __molecule_psk_secret }}"
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+  register: __molecule_host_psk_create
+
+
+- name: "Molecule | Converge | host-api: assert PSK host creation reported changed"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_psk_create is changed
+    fail_msg: "First run of PSK host create did not report changed"
+    success_msg: "PSK host created successfully"
+
+
+# PSK host — second run: expect idempotent (not changed)
+
+- name: "Molecule | Converge | host-api: create PSK host (idempotency run)"
+  a9f.zabbix.host:
+    name: molecule-host-psk
+    host_groups:
+      - Linux servers
+    interfaces:
+      - type: agent
+        useip: true
+        ip: "127.0.0.1"
+        dns: ""
+        port: "10050"
+    tls_connect: psk
+    tls_accept:
+      - psk
+    tls_psk_identity: "{{ __molecule_psk_identity }}"
+    tls_psk_secret: "{{ __molecule_psk_secret }}"
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+  register: __molecule_host_psk_idempotent
+
+
+- name: "Molecule | Converge | host-api: assert PSK host idempotency (not changed)"
+  ansible.builtin.assert:
+    that:
+      - __molecule_host_psk_idempotent is not changed
+    fail_msg: "Second run of PSK host create reported changed (not idempotent)"
+    success_msg: "PSK host is idempotent"

@@ -99,6 +99,33 @@ options:
     type: list
     elements: dict
     default: []
+  tls_connect:
+    description:
+      - How the Zabbix server/proxy connects to the agent.
+    type: str
+    choices: [unencrypted, psk, cert]
+    default: unencrypted
+  tls_accept:
+    description:
+      - What encryption types the agent accepts (bitmask; multiple values allowed).
+    type: list
+    elements: str
+    default: [unencrypted]
+  tls_psk_identity:
+    description:
+      - PSK identity string. Required when V(psk) is used.
+    type: str
+    default: ""
+  tls_psk_secret:
+    description:
+      - PSK secret (hex string). Required when V(psk) is used.
+      - >
+        Note: Zabbix never returns the PSK secret via its API, so changes to
+        C(tls_psk_secret) alone (with the same identity) cannot be detected and
+        will not trigger an update.
+    type: str
+    no_log: true
+    default: ""
   api_url:
     description:
       - Full URL to the Zabbix JSON-RPC API endpoint.
@@ -215,6 +242,15 @@ _INTERFACE_TYPE_MAP = {
     'ipmi': 3,
     'jmx': 4,
 }
+
+_TLS_CONNECT_MAP = {'unencrypted': 1, 'psk': 2, 'cert': 4}
+
+
+def _tls_accept_bitmask(accept_list):
+    mask = 0
+    for v in accept_list:
+        mask |= _TLS_CONNECT_MAP[v]
+    return mask
 
 
 # ---------------------------------------------------------------------------
@@ -366,7 +402,8 @@ def _get_host(module, url, name):
     """Return the first host dict matching *name*, or None."""
     result = _api_request(module, url, 'host.get', {
         'filter': {'host': [name]},
-        'output': 'extend',
+        'output': ['hostid', 'host', 'name', 'description', 'status',
+                   'tls_connect', 'tls_accept', 'tls_psk_identity'],
         'selectGroups': ['groupid'],
         'selectParentTemplates': ['templateid', 'host'],
         'selectInterfaces': 'extend',
@@ -542,6 +579,17 @@ def _ensure_present(module, url):
     macros = p['macros']
     interfaces = p['interfaces']
 
+    desired_tls_connect = _TLS_CONNECT_MAP[p['tls_connect']]
+    desired_tls_accept = _tls_accept_bitmask(p['tls_accept'])
+    tls_payload = {
+        'tls_connect': desired_tls_connect,
+        'tls_accept': desired_tls_accept,
+    }
+    if p['tls_psk_identity']:
+        tls_payload['tls_psk_identity'] = p['tls_psk_identity']
+    if p['tls_psk_secret']:
+        tls_payload['tls_psk'] = p['tls_psk_secret']
+
     # Resolve group names → IDs
     group_map = _resolve_group_names(module, url, host_groups)
     desired_groupids = set(group_map.values())
@@ -564,6 +612,7 @@ def _ensure_present(module, url):
             'macros': macros,
             'status': desired_status,
         }
+        create_params.update(tls_payload)
         if visible_name is not None:
             create_params['name'] = visible_name
         if description is not None:
@@ -610,6 +659,16 @@ def _ensure_present(module, url):
         update_params['macros'] = macros
         changed = True
 
+    if int(host.get('tls_connect', 1)) != desired_tls_connect:
+        update_params.update(tls_payload)
+        changed = True
+    elif int(host.get('tls_accept', 1)) != desired_tls_accept:
+        update_params.update(tls_payload)
+        changed = True
+    elif host.get('tls_psk_identity', '') != p.get('tls_psk_identity', ''):
+        update_params.update(tls_payload)
+        changed = True
+
     if changed:
         _api_request(module, url, 'host.update', update_params)
 
@@ -648,6 +707,10 @@ def main():
             interfaces=dict(type='list', elements='dict', default=None),
             tags=dict(type='list', elements='dict', default=[]),
             macros=dict(type='list', elements='dict', default=[]),
+            tls_connect=dict(type='str', default='unencrypted', choices=['unencrypted', 'psk', 'cert']),
+            tls_accept=dict(type='list', elements='str', default=['unencrypted']),
+            tls_psk_identity=dict(type='str', default=''),
+            tls_psk_secret=dict(type='str', no_log=True, default=''),
             api_url=dict(type='str', required=True),
             api_token=dict(type='str', no_log=True, default=''),
             api_user=dict(type='str', default=''),

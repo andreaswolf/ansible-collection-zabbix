@@ -1,0 +1,110 @@
+# Verify host objects created by task-host-api.yml converge tasks.
+# Fetches hosts from the live Zabbix API and asserts TLS settings are correct.
+
+- name: "Molecule | Verify | host-api: login to Zabbix API"
+  ansible.builtin.uri:
+    url: "http://localhost/zabbix/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "user.login"
+      params:
+        username: "Admin"
+        password: "zabbix"
+      id: 1
+    status_code: 200
+  register: __molecule_verify_login
+
+
+- name: "Molecule | Verify | host-api: store API token"
+  ansible.builtin.set_fact:
+    __molecule_verify_token: "{{ __molecule_verify_login.json.result }}"
+
+
+# ---------------------------------------------------------------------------
+# Plain host assertions
+# ---------------------------------------------------------------------------
+
+- name: "Molecule | Verify | host-api: fetch plain host from API"
+  ansible.builtin.uri:
+    url: "http://localhost/zabbix/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ __molecule_verify_token }}"
+    body:
+      jsonrpc: "2.0"
+      method: "host.get"
+      params:
+        filter:
+          host:
+            - molecule-host-plain
+        output:
+          - hostid
+          - host
+          - tls_connect
+          - tls_accept
+          - tls_psk_identity
+      id: 1
+    status_code: 200
+  register: __molecule_verify_plain_host
+
+
+- name: "Molecule | Verify | host-api: assert plain host exists and has correct TLS settings"
+  ansible.builtin.assert:
+    that:
+      - __molecule_verify_plain_host.json.result | length == 1
+      - __molecule_verify_plain_host.json.result[0].tls_connect == "1"
+      - __molecule_verify_plain_host.json.result[0].tls_accept == "1"
+    fail_msg: >
+      Plain host assertions failed:
+      found={{ __molecule_verify_plain_host.json.result | length }},
+      tls_connect={{ (__molecule_verify_plain_host.json.result[0].tls_connect) | default('N/A') }},
+      tls_accept={{ (__molecule_verify_plain_host.json.result[0].tls_accept) | default('N/A') }}
+    success_msg: "Plain host exists with correct TLS settings (unencrypted)"
+
+
+# ---------------------------------------------------------------------------
+# PSK host assertions
+# ---------------------------------------------------------------------------
+
+- name: "Molecule | Verify | host-api: fetch PSK host from API"
+  ansible.builtin.uri:
+    url: "http://localhost/zabbix/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ __molecule_verify_token }}"
+    body:
+      jsonrpc: "2.0"
+      method: "host.get"
+      params:
+        filter:
+          host:
+            - molecule-host-psk
+        output:
+          - hostid
+          - host
+          - tls_connect
+          - tls_accept
+          - tls_psk_identity
+      id: 1
+    status_code: 200
+  register: __molecule_verify_psk_host
+
+
+- name: "Molecule | Verify | host-api: assert PSK host exists and has correct TLS settings"
+  ansible.builtin.assert:
+    that:
+      - __molecule_verify_psk_host.json.result | length == 1
+      - __molecule_verify_psk_host.json.result[0].tls_connect == "2"
+      - __molecule_verify_psk_host.json.result[0].tls_accept == "2"
+      - __molecule_verify_psk_host.json.result[0].tls_psk_identity == "molecule-test-psk"
+    fail_msg: >
+      PSK host assertions failed:
+      found={{ __molecule_verify_psk_host.json.result | length }},
+      tls_connect={{ (__molecule_verify_psk_host.json.result[0].tls_connect) | default('N/A') }},
+      tls_accept={{ (__molecule_verify_psk_host.json.result[0].tls_accept) | default('N/A') }},
+      tls_psk_identity={{ (__molecule_verify_psk_host.json.result[0].tls_psk_identity) | default('N/A') }}
+    success_msg: "PSK host exists with correct TLS settings and PSK identity"

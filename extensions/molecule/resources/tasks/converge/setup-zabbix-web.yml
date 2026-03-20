@@ -1,0 +1,105 @@
+# Install and configure the Zabbix web frontend so the JSON-RPC API is
+# reachable at http://localhost/zabbix/api_jsonrpc.php for integration tests.
+
+- name: "Molecule | Converge | web: install Zabbix web frontend packages (Debian)"
+  ansible.builtin.package:
+    name:
+      - zabbix-frontend-php
+      - zabbix-apache-conf
+      - apache2
+    state: present
+  when: ansible_os_family == "Debian"
+
+
+- name: "Molecule | Converge | web: install Zabbix web frontend packages (RedHat/Suse)"
+  ansible.builtin.package:
+    name:
+      - zabbix-web-mysql
+      - zabbix-apache-conf
+      - httpd
+    state: present
+  when: ansible_os_family in ["RedHat", "Suse"]
+
+
+- name: "Molecule | Converge | web: ensure /etc/zabbix/web directory exists"
+  ansible.builtin.file:
+    path: /etc/zabbix/web
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+
+- name: "Molecule | Converge | web: write zabbix.conf.php"
+  ansible.builtin.copy:
+    dest: /etc/zabbix/web/zabbix.conf.php
+    owner: www-data
+    group: www-data
+    mode: "0640"
+    content: |
+      <?php
+      $DB['TYPE']     = 'MYSQL';
+      $DB['SERVER']   = 'localhost';
+      $DB['PORT']     = '0';
+      $DB['DATABASE'] = 'zabbix';
+      $DB['USER']     = 'zabbix';
+      $DB['PASSWORD'] = '';
+      $ZBX_SERVER      = 'localhost';
+      $ZBX_SERVER_PORT = '10051';
+      $ZBX_SERVER_NAME = 'Molecule Test';
+      $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
+  when: ansible_os_family == "Debian"
+
+
+- name: "Molecule | Converge | web: write zabbix.conf.php (RedHat/Suse)"
+  ansible.builtin.copy:
+    dest: /etc/zabbix/web/zabbix.conf.php
+    owner: apache
+    group: apache
+    mode: "0640"
+    content: |
+      <?php
+      $DB['TYPE']     = 'MYSQL';
+      $DB['SERVER']   = 'localhost';
+      $DB['PORT']     = '0';
+      $DB['DATABASE'] = 'zabbix';
+      $DB['USER']     = 'zabbix';
+      $DB['PASSWORD'] = '';
+      $ZBX_SERVER      = 'localhost';
+      $ZBX_SERVER_PORT = '10051';
+      $ZBX_SERVER_NAME = 'Molecule Test';
+      $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
+  when: ansible_os_family in ["RedHat", "Suse"]
+
+
+- name: "Molecule | Converge | web: start and enable Apache (Debian)"
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true
+  when: ansible_os_family == "Debian"
+
+
+- name: "Molecule | Converge | web: start and enable httpd (RedHat/Suse)"
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true
+  when: ansible_os_family in ["RedHat", "Suse"]
+
+
+- name: "Molecule | Converge | web: wait for Zabbix API to become available"
+  ansible.builtin.uri:
+    url: "http://localhost/zabbix/api_jsonrpc.php"
+    method: POST
+    body_format: json
+    body:
+      jsonrpc: "2.0"
+      method: "apiinfo.version"
+      params: []
+      id: 1
+    status_code: 200
+  register: __molecule_web_api_check
+  until: __molecule_web_api_check.status == 200
+  retries: 30
+  delay: 5
