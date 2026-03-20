@@ -404,7 +404,7 @@ def _get_host(module, url, name):
         'filter': {'host': [name]},
         'output': ['hostid', 'host', 'name', 'description', 'status',
                    'tls_connect', 'tls_accept', 'tls_psk_identity'],
-        'selectGroups': ['groupid'],
+        'selectHostGroups': ['groupid'],
         'selectParentTemplates': ['templateid', 'host'],
         'selectInterfaces': 'extend',
         'selectTags': 'extend',
@@ -641,7 +641,7 @@ def _ensure_present(module, url):
         update_params['description'] = description
         changed = True
 
-    current_groupids = {g['groupid'] for g in host.get('groups', [])}
+    current_groupids = {g['groupid'] for g in host.get('hostgroups', [])}
     if current_groupids != desired_groupids:
         update_params['groups'] = [{'groupid': gid} for gid in desired_groupids]
         changed = True
