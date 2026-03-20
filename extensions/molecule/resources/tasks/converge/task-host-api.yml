@@ -14,6 +14,16 @@
 # Plain host (no encryption) — first run: expect changed
 # ---------------------------------------------------------------------------
 
+- name: "Molecule | Converge | host-api: ensure plain host is absent before test"
+  a9f.zabbix.host:
+    name: molecule-host-plain
+    state: absent
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+
+
 - name: "Molecule | Converge | host-api: create plain host (first run)"
   a9f.zabbix.host:
     name: molecule-host-plain
@@ -77,6 +87,16 @@
 # ---------------------------------------------------------------------------
 # PSK host — first run: expect changed
 # ---------------------------------------------------------------------------
+
+- name: "Molecule | Converge | host-api: ensure PSK host is absent before test"
+  a9f.zabbix.host:
+    name: molecule-host-psk
+    state: absent
+    api_url: "{{ __molecule_zabbix_api_url }}"
+    api_user: "{{ __molecule_zabbix_api_user }}"
+    api_password: "{{ __molecule_zabbix_api_password }}"
+    validate_certs: false
+
 
 - name: "Molecule | Converge | host-api: create PSK host (first run)"
   a9f.zabbix.host:
