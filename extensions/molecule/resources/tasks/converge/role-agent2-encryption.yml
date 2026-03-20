@@ -1,0 +1,14 @@
+- name: "Molecule | Converge | Include the a9f.zabbix.agent2 role (PSK encryption)"
+  ansible.builtin.include_role:
+    name: "a9f.zabbix.agent2"
+  vars:
+    agent2_zabbix_state: "present"
+    agent2_zabbix_server: "127.0.0.1"
+    agent2_zabbix_tls_connect: "psk"
+    agent2_zabbix_tls_accept:
+      - "psk"
+    agent2_zabbix_tls_psk_identity: "molecule-test-psk"
+    agent2_zabbix_tls_psk_secret: "1f87b595725ac58dd977beef14b97461a7c1045b9a1c963065002c5473194952"
+    agent2_zabbix_user_parameters:
+      - "custom.uptime,cat /proc/uptime"
+      - "custom.hostname,hostname -f"

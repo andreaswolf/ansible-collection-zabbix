@@ -1,0 +1,9 @@
+---
+
+minor_changes:
+  - agent2 - Added support for configuring PSK-based encryption via five new
+    variables: ``agent2_zabbix_tls_connect``, ``agent2_zabbix_tls_accept``,
+    ``agent2_zabbix_tls_psk_identity``, ``agent2_zabbix_tls_psk_secret``, and
+    ``agent2_zabbix_tls_psk_file``. When ``agent2_zabbix_tls_psk_secret`` is
+    set, the role creates the PSK file on the managed host and configures the
+    agent accordingly.
